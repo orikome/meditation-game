@@ -2,7 +2,6 @@
 const STARTING_RADIUS = 100;
 const GROWTH_FACTOR = 1.5;
 const SHRINK_FACTOR = 0.5;
-const SCORE_POSITION_Y = 50;
 const TEXT_SIZE = 32;
 const TOLERANCE = 20;
 const EFFECT_DURATION = 15;
@@ -185,7 +184,7 @@ function easeInOutQuad(x) {
 
 function renderScore() {
   fill(...SCORE_COLOR);
-  text(`Score: ${score}`, width / 2, SCORE_POSITION_Y);
+  text(`${score}`, width / 2, height / 2);
 }
 
 function applyEffect() {
