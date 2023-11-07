@@ -26,7 +26,7 @@ let minSize;
 
 let rippleStart = false;
 let rippleRadius = 0;
-let rippleSpeed = 5;
+let rippleSpeed = 2;
 let rippleWidth = 80;
 let rippleAmplitude = 20; // Height of the ripple
 
@@ -92,7 +92,7 @@ function startRipple() {
 function renderRipple() {
   if (!rippleStart) return;
   
-  rippleRadius += 2;
+  rippleRadius += rippleSpeed;
   if (rippleRadius - OFFSET > width) {
     rippleStart = false;
   }
