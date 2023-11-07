@@ -14,8 +14,8 @@ const ACTIVE_CIRCLE_COLOR = [128, 0, 128, 100]; // Purple
 const EFFECT_COLOR = [0, 255, 100]; // Green
 const SCORE_COLOR = [255];
 const GOLDEN_ANGLE = 137.5;
-const SCALE_FACTOR = 25; // Distance between phyllotaxis pattern points
-const OFFSET = STARTING_RADIUS + 50; // Ensure we start outside the static circle
+const SCALE_FACTOR = 50; // Distance between phyllotaxis pattern points
+const OFFSET = STARTING_RADIUS + 60; // Ensure we start outside the static circle
 
 // State variables
 let dynamicRadius;
@@ -29,6 +29,7 @@ let rippleRadius = 0;
 let rippleSpeed = 2;
 let rippleWidth = 80;
 let rippleAmplitude = 20; // Height of the ripple
+let phyllotaxisPoints = [];
 
 
 // p5.js setup function to initialize the game
@@ -57,6 +58,7 @@ function draw() {
 }
 
 function renderPhyllotaxis() {
+  phyllotaxisPoints = []; // Reset the array each frame
   push();
   translate(width / 2, height / 2);
 
@@ -70,7 +72,7 @@ function renderPhyllotaxis() {
   // Define the outer boundary for the gradient effect, half the width or height of the canvas
   let boundaryRadius = min(width, height) / 2;
 
-  for (let i = start; i < start + score * 9; i++) {
+  for (let i = start; i < start + score * 3; i++) {
     let angle = i * GOLDEN_ANGLE;
     let radius = SCALE_FACTOR * sqrt(i);
 
@@ -82,7 +84,9 @@ function renderPhyllotaxis() {
       let isAffectedByRipple = isWithinRipple(x, y);
 
       // Apply the ripple effect
-      let { x: rippleX, y: rippleY } = applyRippleEffect(x, y, isAffectedByRipple);
+      let rippleEffect = applyRippleEffect(x, y, isAffectedByRipple);
+      let rippleX = rippleEffect.x;
+      let rippleY = rippleEffect.y;
 
       // Calculate the gradient based on the distance to the center
       let lerpAmount = map(radius, OFFSET, boundaryRadius, 0, 1);
@@ -90,13 +94,30 @@ function renderPhyllotaxis() {
 
       // Change the color if affected by ripple
       fill(isAffectedByRipple ? EFFECT_COLOR : currentColor);
-
+      
       noStroke();
-      ellipse(rippleX, rippleY, 15, 15);
+      ellipse(rippleX, rippleY, 25, 25);
+
+      phyllotaxisPoints.push({x: rippleX, y: rippleY, color: currentColor});
     }
   }
 
+  drawLinesBetweenPoints(phyllotaxisPoints);
   pop();
+}
+
+function drawLinesBetweenPoints(points) {
+  let maxLineDistance = 90;
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) { // Start at i + 1 to avoid duplicating lines
+      let d = dist(points[i].x, points[i].y, points[j].x, points[j].y);
+      if (d < maxLineDistance) {
+        let lineColor = lerpColor(points[i].color, points[j].color, 0.5);
+        stroke(lineColor);
+        line(points[i].x, points[i].y, points[j].x, points[j].y);
+      }
+    }
+  }
 }
 
 function startRipple() {
