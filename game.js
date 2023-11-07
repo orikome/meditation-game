@@ -60,8 +60,15 @@ function renderPhyllotaxis() {
   push();
   translate(width / 2, height / 2);
 
+  // Gradient colors
+  let innerColor = color(...DYNAMIC_CIRCLE_COLOR);
+  let outerColor = color(...ACTIVE_CIRCLE_COLOR);
+
   // Find the starting point where the radius will be just outside the static circle
   let start = floor((OFFSET * OFFSET) / (SCALE_FACTOR * SCALE_FACTOR));
+
+  // Define the outer boundary for the gradient effect, half the width or height of the canvas
+  let boundaryRadius = min(width, height) / 2;
 
   for (let i = start; i < start + score * 9; i++) {
     let angle = i * GOLDEN_ANGLE;
@@ -77,12 +84,12 @@ function renderPhyllotaxis() {
       // Apply the ripple effect
       let { x: rippleX, y: rippleY } = applyRippleEffect(x, y, isAffectedByRipple);
 
+      // Calculate the gradient based on the distance to the center
+      let lerpAmount = map(radius, OFFSET, boundaryRadius, 0, 1);
+      let currentColor = lerpColor(innerColor, outerColor, lerpAmount);
+
       // Change the color if affected by ripple
-      if (isAffectedByRipple) {
-        fill(...EFFECT_COLOR);
-      } else {
-        fill(...ACTIVE_CIRCLE_COLOR);
-      }
+      fill(isAffectedByRipple ? EFFECT_COLOR : currentColor);
 
       noStroke();
       ellipse(rippleX, rippleY, 15, 15);
