@@ -195,6 +195,16 @@ function applyEffect() {
   }
 }
 
+function touchStarted() {
+  const distanceFromCenter = dist(mouseX, mouseY, width / 2, height / 2);
+
+  if (distanceFromCenter <= STARTING_RADIUS) {
+    checkTiming();
+    startRipple();
+    return false;
+  }
+}
+
 function keyPressed() {
   // Spacebar
   if (keyCode === 32) {
