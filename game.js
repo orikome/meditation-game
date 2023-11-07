@@ -13,6 +13,9 @@ const DYNAMIC_CIRCLE_COLOR = [70, 130, 180, 100]; // Blue
 const ACTIVE_CIRCLE_COLOR = [128, 0, 128, 100]; // Purple
 const EFFECT_COLOR = [0, 255, 100]; // Green
 const SCORE_COLOR = [255];
+const GOLDEN_ANGLE = 137.5;
+const SCALE_FACTOR = 25; // Distance between phyllotaxis pattern points
+const OFFSET = STARTING_RADIUS + 50; // Ensure we start outside the static circle
 
 // State variables
 let dynamicRadius;
@@ -42,6 +45,32 @@ function draw() {
   renderDynamicCircle();
   renderScore();
   applyEffect();
+  renderPhyllotaxis();
+}
+
+function renderPhyllotaxis() {
+  push();
+  translate(width / 2, height / 2);
+
+  // Find the starting point where the radius will be just outside the static circle
+  let start = floor((OFFSET * OFFSET) / (SCALE_FACTOR * SCALE_FACTOR));
+
+  for (let i = start; i < start + score * 8; i++) {
+    let angle = i * GOLDEN_ANGLE;
+    let radius = SCALE_FACTOR * sqrt(i);
+
+    if (radius >= OFFSET) {
+      // Convert polar coordinates to Cartesian coordinates
+      let x = radius * cos(radians(angle));
+      let y = radius * sin(radians(angle));
+
+      fill(...ACTIVE_CIRCLE_COLOR);
+      noStroke();
+      ellipse(x, y, 15, 15);
+    }
+  }
+
+  pop();
 }
 
 function renderDynamicCircle() {
