@@ -24,6 +24,13 @@ let effectCounter = 0;
 let maxSize;
 let minSize;
 
+let rippleStart = false;
+let rippleRadius = 0;
+let rippleSpeed = 5;
+let rippleWidth = 80;
+let rippleAmplitude = 20; // Height of the ripple
+
+
 // p5.js setup function to initialize the game
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -46,6 +53,7 @@ function draw() {
   renderScore();
   applyEffect();
   renderPhyllotaxis();
+  renderRipple();
 }
 
 function renderPhyllotaxis() {
@@ -55,7 +63,7 @@ function renderPhyllotaxis() {
   // Find the starting point where the radius will be just outside the static circle
   let start = floor((OFFSET * OFFSET) / (SCALE_FACTOR * SCALE_FACTOR));
 
-  for (let i = start; i < start + score * 8; i++) {
+  for (let i = start; i < start + score * 9; i++) {
     let angle = i * GOLDEN_ANGLE;
     let radius = SCALE_FACTOR * sqrt(i);
 
@@ -64,13 +72,44 @@ function renderPhyllotaxis() {
       let x = radius * cos(radians(angle));
       let y = radius * sin(radians(angle));
 
+      // Apply ripple effect
+      let { x: rippleX, y: rippleY } = applyRippleEffect(x, y);
+
       fill(...ACTIVE_CIRCLE_COLOR);
       noStroke();
-      ellipse(x, y, 15, 15);
+      ellipse(rippleX, rippleY, 15, 15);
     }
   }
 
   pop();
+}
+
+function startRipple() {
+  rippleStart = true;
+  rippleRadius = 0; // Reset the ripple to start from the beginning
+}
+
+function renderRipple() {
+  if (!rippleStart) return;
+  
+  rippleRadius += 2;
+  if (rippleRadius - OFFSET > width) {
+    rippleStart = false;
+  }
+}
+
+function applyRippleEffect(x, y) {
+  let distanceFromCenter = dist(0, 0, x, y) - OFFSET;
+  // Check if the ellipse is within the range of the current ripple wave
+  if (rippleStart && distanceFromCenter < rippleRadius && distanceFromCenter > rippleRadius - rippleWidth) {
+    // Apply a displacement based on a sine wave
+    let displacement = sin((rippleRadius - distanceFromCenter) / rippleWidth * PI) * rippleAmplitude;
+    // Move the ellipse outward by the displacement amount
+    let angle = atan2(y, x);
+    x += displacement * cos(angle);
+    y += displacement * sin(angle);
+  }
+  return { x, y };
 }
 
 function renderDynamicCircle() {
@@ -116,6 +155,7 @@ function keyPressed() {
   // Spacebar
   if (keyCode === 32) {
     checkTiming();
+    startRipple();
   }
 }
 
