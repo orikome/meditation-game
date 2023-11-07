@@ -71,11 +71,19 @@ function renderPhyllotaxis() {
       // Convert polar coordinates to Cartesian coordinates
       let x = radius * cos(radians(angle));
       let y = radius * sin(radians(angle));
+      
+      let isAffectedByRipple = isWithinRipple(x, y);
 
-      // Apply ripple effect
-      let { x: rippleX, y: rippleY } = applyRippleEffect(x, y);
+      // Apply the ripple effect
+      let { x: rippleX, y: rippleY } = applyRippleEffect(x, y, isAffectedByRipple);
 
-      fill(...ACTIVE_CIRCLE_COLOR);
+      // Change the color if affected by ripple
+      if (isAffectedByRipple) {
+        fill(...EFFECT_COLOR);
+      } else {
+        fill(...ACTIVE_CIRCLE_COLOR);
+      }
+
       noStroke();
       ellipse(rippleX, rippleY, 15, 15);
     }
@@ -98,10 +106,9 @@ function renderRipple() {
   }
 }
 
-function applyRippleEffect(x, y) {
+function applyRippleEffect(x, y, isAffectedByRipple) {
   let distanceFromCenter = dist(0, 0, x, y) - OFFSET;
-  // Check if the ellipse is within the range of the current ripple wave
-  if (rippleStart && distanceFromCenter < rippleRadius && distanceFromCenter > rippleRadius - rippleWidth) {
+  if (isAffectedByRipple) {
     // Apply a displacement based on a sine wave
     let displacement = sin((rippleRadius - distanceFromCenter) / rippleWidth * PI) * rippleAmplitude;
     // Move the ellipse outward by the displacement amount
@@ -110,6 +117,16 @@ function applyRippleEffect(x, y) {
     y += displacement * sin(angle);
   }
   return { x, y };
+}
+
+function isWithinRipple(x, y) {
+  let distanceFromCenter = dist(0, 0, x, y) - OFFSET;
+  // Check if the ellipse is within the range of the current ripple wave
+  return (
+    rippleStart &&
+    distanceFromCenter < rippleRadius &&
+    distanceFromCenter > rippleRadius - rippleWidth
+  );
 }
 
 function renderDynamicCircle() {
