@@ -15,6 +15,7 @@ const SCORE_COLOR = [255];
 const GOLDEN_ANGLE = 137.5;
 const SCALE_FACTOR = 50; // Distance between phyllotaxis pattern points
 const OFFSET = STARTING_RADIUS + 60; // Ensure we start outside the static circle
+const RESET_SCORE_AMOUNT = 20;
 
 // State variables
 let dynamicRadius;
@@ -29,6 +30,10 @@ let rippleSpeed = 2;
 let rippleWidth = 80;
 let rippleAmplitude = 20; // Height of the ripple
 let phyllotaxisPoints = [];
+
+let isEndingSequence = false;
+let endingSequenceFrameCounter = 0;
+let endingSequenceSpeed = 2;
 
 
 // p5.js setup function to initialize the game
@@ -52,8 +57,16 @@ function draw() {
   renderDynamicCircle();
   renderScore();
   applyEffect();
-  renderPhyllotaxis();
+  if (isEndingSequence) {
+    animateEndingSequence();
+  } else {
+    renderPhyllotaxis();
+  }
   renderRipple();
+
+  if (score >= RESET_SCORE_AMOUNT && !isEndingSequence) {
+    startEndingSequence();
+  }
 }
 
 function renderPhyllotaxis() {
@@ -103,6 +116,32 @@ function renderPhyllotaxis() {
 
   drawLinesBetweenPoints(phyllotaxisPoints);
   pop();
+}
+
+function animateEndingSequence() {
+  if (phyllotaxisPoints.length > 0) {
+    // Only remove a point every 'endingSequenceSpeed' frame
+    if (endingSequenceFrameCounter % endingSequenceSpeed === 0) {
+      phyllotaxisPoints.pop();
+      score = max(0, score - 1);
+      endingSequenceFrameCounter = 0;
+    }
+    endingSequenceFrameCounter++;
+
+    push();
+    translate(width / 2, height / 2);
+    drawLinesBetweenPoints(phyllotaxisPoints);
+
+    for (let point of phyllotaxisPoints) {
+      fill(point.color);
+      noStroke();
+      ellipse(point.x, point.y, 25, 25);
+    }
+    pop();
+  } else {
+    // Once all points are gone, stop the ending sequence
+    isEndingSequence = false;
+  }
 }
 
 function drawLinesBetweenPoints(points) {
@@ -197,7 +236,6 @@ function applyEffect() {
 
 function touchStarted() {
   const distanceFromCenter = dist(mouseX, mouseY, width / 2, height / 2);
-
   if (distanceFromCenter <= STARTING_RADIUS) {
     checkTiming();
     startRipple();
@@ -214,6 +252,8 @@ function keyPressed() {
 }
 
 function checkTiming() {
+  if (isEndingSequence) return;
+
   let diff = abs(STARTING_RADIUS - dynamicRadius);
   if (diff <= TOLERANCE) {
     score++;
@@ -221,6 +261,15 @@ function checkTiming() {
   } else {
     score = 0;
   }
+}
+
+function startEndingSequence() {
+  isEndingSequence = true;
+}
+
+function resetGame() {
+  isEndingSequence = false;
+  score = 0;
 }
 
 function windowResized() {
